@@ -177,9 +177,9 @@ class MpesaController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mpesa_no' => 'required|string|max:255',
-            'instruction' => 'string',
+            'instruction' => 'sometimes|string',
             'quantity' => 'required|integer|min:1',
-            'shipping_address' => 'string',
+            'shipping_address' => 'sometimes|string',
             'page_id' => 'required|exists:pages,id',
         ];
 

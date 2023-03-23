@@ -28,7 +28,7 @@ class ProfileController extends Controller
             'last_name' => 'sometimes|required|string|min:2',
             'email' => 'sometimes|required|string|email|unique:users,email,' . Auth::id(),
             'phone' => 'sometimes|required|string|min:9|unique:users,phone,' . Auth::id(),
-            'image'=>'string',
+            'image'=>'sometimes|string',
             'password' => ['sometimes','confirmed','required', Rules\Password::defaults()],
         ];
 
