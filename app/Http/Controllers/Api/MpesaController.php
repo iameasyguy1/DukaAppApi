@@ -6,7 +6,9 @@ use App\Actions\Payment\Tenant\PaymentGatewayIpn;
 use App\Enums\PaymentRouteEnum;
 use App\Http\Controllers\Controller;
 use App\Mail\BasicMail;
+use App\Mail\BasicNotify;
 use App\Models\Admin;
+use App\Models\Order;
 use App\Models\Page;
 use App\Models\ProductOrder;
 use Gloudemans\Shoppingcart\Facades\Cart;
@@ -172,10 +174,15 @@ class MpesaController extends Controller
     }
     public function PayWithMpesa(Request $request){
         $rules =[
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'mpesa_no' => 'required|string|max:255',
-            'qty' => 'required|numeric|min:1',
+            'instruction' => 'string',
+            'quantity' => 'required|integer|min:1',
+            'shipping_address' => 'string',
             'page_id' => 'required|exists:pages,id',
         ];
+
         //run validation
         // Run the validation on the request data
         $validator = Validator::make($request->all(), $rules);
@@ -193,40 +200,94 @@ class MpesaController extends Controller
             ], 422); // 422 is the HTTP status code for unprocessable entity
         }
 
+
+
         $page = Page::find($request->page_id);
-        $qty = (int) $request->qty;
+        $qty = (int) $request->quantity;
         $salePrice = (float) $page->sale_price;
         $total = $qty * $salePrice;
         $owner_email=$page->user->email;
+        $phone = "254". substr($request->mpesa_no, -9);
 //        Log::debug($request->all());
-        $mpesa = self::send_stk($request->mpesa_no,$total,$owner_email,"Order ".$owner_email);
-//        Log::warning($mpesa);
-        return response()->json($mpesa);
-    }
-
-    public function MpesaSuccess(Request $request){
-//        Log::info($request->all());
-        $owner=Admin::first();
-//        Log::warning($owner);
-        Cart::destroy();
-        (new PaymentGatewayIpn())->send_order_mail($request->order_id);
-        $order_id = wrap_random_number($request->order_id);
-        $order = ProductOrder::find($request->order_id);
-        $order->update([
-            'payment_status' => 'success'
-        ]);
+        $mpesa = self::send_stk($phone,$total,$owner_email,"Order ".$owner_email);
+        Log::warning($mpesa);
 
         try{
-            $sub = __('You have an order notification from') . ' ' . get_static_option('site_title');
-            $shop_owner_message="A new order has been placed on Paysoko. Order ID ".$request->order_id."\nTotal Amount:Kes ".$order->total_amount."\nLogin to dispatch the order";
-            $super_admin_message ="A new order has been placed on Paysoko Store. Order ID ".$request->order_id."\nTotal Amount:Kes ".$order->total_amount."\nAsk ".get_static_option('site_title')." to Login and dispatch the order";;
-            send_sms_notification($owner->mobile,$shop_owner_message);
+            if($mpesa['Code']){
+                if($mpesa['Code']=="200"){
+                    $order = Order::create([
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'phone' => $request->mpesa_no,
+                        'notes' => $request->instruction,
+                        'mpesa_no' => $request->mpesa_no,
+                        'quantity' => $request->quantity,
+                        'total' => $total,
+                        'shipping_address' => $request->shipping_address,
+                        'order_status' => 'pending',
+                        'payment_status' => 'unpaid',
+                        'tranx_ref' => $mpesa['MerchantRequestID'],
+                        'page_id' => $request->page_id,
+                    ]);
+                    $mpesa['order']=$order->id;
+                    return response()->json($mpesa);
+                }
+            }else{
+                return response()->json([
+                    'success' => false,
+                    'data'=>$mpesa,
+                    'errors' => 'An error occurred'
+                ], 500);
+            }
+        }catch(\Exception $e){
+            return response()->json([
+                'code' => 500,
+                'success' => false,
+                'message'=>$mpesa['message'],
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+
+
+
+
+    }
+
+    public function MpesaSuccess(Request $request,$order_id){
+
+
+        $order = Order::find($order_id);
+        if($order){
+            $order->update([
+                'payment_status' => 'paid'
+            ]);
+
+        try{
+            $owner=$order->page->user;
+            $sub = __('New Order notification from DukaApp.com');
+            $shop_owner_message="A new order has been placed on DukaApp.com. Order ID #".$order_id."\nTotal Amount:Kes ".$order->total."\nLogin to dispatch the order";
+            $super_admin_message ="A new order has been placed on DukaApp.com. Order ID #".$order_id."\nTotal Amount:Kes ".$order->total."\nAsk ".$owner->phone." to Login and dispatch the order";;
+            send_sms_notification($owner->phone,$shop_owner_message);
             send_sms_notification(env('ADMIN_NUMBER'),$super_admin_message);
-            \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicMail($super_admin_message,$sub));
+            \Mail::to([$owner->email])->send(new BasicNotify($shop_owner_message,$sub));
+            \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicNotify($super_admin_message,$sub));
         }catch(\Exception $e){
             Log::error($e->getMessage());
         }
+            return response()->json([
+                'code' => 200,
+                'success' => true,
+                'message'=>$order,
 
-        return redirect()->route(PaymentRouteEnum::SUCCESS_ROUTE, $order_id);
+            ], 200);
+        }
+
+
+        return response()->json([
+            'code' => 404,
+            'success' => false,
+            'message'=>'Order not found!',
+
+        ], 404);
     }
 }

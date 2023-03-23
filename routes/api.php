@@ -27,18 +27,21 @@ Route::group([
 ], function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('mpesa/stk', [MpesaController::class, 'PayWithMpesa'])->middleware('auth:sanctum');
+    Route::post('mpesa/stk', [MpesaController::class, 'PayWithMpesa']);
+    Route::get('order/paid/{order_id}', [MpesaController::class,'MpesaSuccess']);
+    Route::get('mpesa/status/{merchant_id}', [MpesaController::class,'MpesaStatus']);
+    Route::get('pages/show/{slug}', [PageController::class, 'show'])->name('pages.show');
+    Route::get('pages/search/{query}', [PageController::class, 'search']);
+    Route::post('reset/password', [ForgotPasswordController::class, 'store'])->name('pass.reset');
+    Route::post('verify/password', [ForgotPasswordController::class, 'verify_code'])->name('pass.verify');
     Route::middleware('auth:sanctum')->get('/user', [ProfileController::class, 'profile']);
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::middleware('auth:sanctum')->post('/update-profile', [ProfileController::class, 'update']);
     Route::resource('pages', PageController::class)->middleware('auth:sanctum')->except(['show']);
-    Route::resource('orders', OrderController::class)->middleware('auth:sanctum');
+    Route::resource('orders', OrderController::class)->middleware('auth:sanctum')->except(['store']);
 
 });
-Route::get('v1/pages/show/{slug}', [PageController::class, 'show'])->name('pages.show');
-Route::get('v1/pages/search/{query}', [PageController::class, 'search']);
-Route::post('v1/reset/password', [ForgotPasswordController::class, 'store'])->name('pass.reset');
-Route::post('v1/verify/password', [ForgotPasswordController::class, 'verify_code'])->name('pass.verify');
+
 Route::fallback(function () {
     return response()->json([
         'success' => false,
