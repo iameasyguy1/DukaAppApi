@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'api'],
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'),'https://single-page-iota.vercel.app'],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'),'http://localhost:3000'],
 
     'allowed_origins_patterns' => [],
 

@@ -50,6 +50,11 @@ class User extends Authenticatable
 
     public function pages()
     {
-        return $this->hasMany(Page::class);
+        return $this->hasMany(Page::class,);
+    }
+
+    public function orders()
+    {
+        return $this->hasManyThrough(Order::class, Page::class);
     }
 }

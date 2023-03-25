@@ -23,7 +23,7 @@ class Order extends Model
         'page_id',
         'payment_mode'
     ];
-    public function page()
+    public function pages()
     {
         return $this->belongsTo(Page::class,'page_id');
     }

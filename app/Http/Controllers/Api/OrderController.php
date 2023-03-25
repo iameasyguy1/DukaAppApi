@@ -26,7 +26,7 @@ class OrderController extends Controller
             $orders = DB::table('orders')->get();
             return $this->onSuccess($orders, 'Orders Retrieved');
         }elseif($request->user()->role===2){
-            $orders = $request->user()->pages()->orders;
+            $orders =$request->user()->orders;
             return $this->onSuccess($orders, 'Orders Retrieved');
         }else{
             return $this->onError(401, 'An error occurred');

@@ -26,7 +26,7 @@ Route::group([
     'as' => 'api.'
 ], function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('mpesa/stk', [MpesaController::class, 'PayWithMpesa']);
     Route::get('order/paid/{order_id}', [MpesaController::class,'MpesaSuccess']);
     Route::get('mpesa/status/{merchant_id}', [MpesaController::class,'MpesaStatus']);
