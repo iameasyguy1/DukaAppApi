@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BasicMail;
+use App\Mail\BasicNotify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
@@ -105,7 +108,19 @@ class ProfileController extends Controller
                 $formattedAmount = 0;
             }
        $withdraw= seller_withdraw_request($formattedAmount,$email,$phone);
-
+            if(json_decode($withdraw)->Code=="200"){
+                Log::error("hhhhhh".$withdraw);
+                try{
+                    $sub = __('You have a withdrawal request from Dukaapp.com');
+                    $shop_owner_message="Your withdrawal request for your KES ".$formattedAmount." balance on dukaapp.com has been received, please wait for approval.";
+                    $super_admin_message ="A new withdrawal request has been sent by Dukaapp.com\nTotal Amount:".$formattedAmount."\nPlease Verify and approve";
+                    send_sms_notification($phone,$shop_owner_message);
+                    send_sms_notification(env('ADMIN_NUMBER'),$super_admin_message);
+                    \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicNotify($super_admin_message,$sub));
+                }catch(\Exception $e){
+                    Log::error($e->getMessage());
+                }
+            }
             return $withdraw;
         } catch (\Throwable $th) {
             return response()->json([
