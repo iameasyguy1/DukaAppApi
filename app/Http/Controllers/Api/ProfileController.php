@@ -117,11 +117,17 @@ class ProfileController extends Controller
                     send_sms_notification($phone,$shop_owner_message);
                     send_sms_notification(env('ADMIN_NUMBER'),$super_admin_message);
                     \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicNotify($super_admin_message,$sub));
+                    return $withdraw;
                 }catch(\Exception $e){
                     Log::error($e->getMessage());
+                    return response()->json([
+                        'status' => false,
+                        'error' => $e->getMessage(),
+                        'message'=>'An error occured while processing your request'
+                    ], 500);
                 }
             }
-            return $withdraw;
+
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
