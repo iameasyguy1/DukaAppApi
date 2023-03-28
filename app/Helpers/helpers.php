@@ -213,7 +213,7 @@ if (!function_exists('seller_balance')){
 
             "email" => $email,
             "currency_code" => 'KES',
-
+            "microservice" => "dukaapp"
 
         ];
         $curl = curl_init();
@@ -255,8 +255,10 @@ if (!function_exists('seller_withdraw_request')){
             "currency_code" => 'KES',
             "phone" => "254". substr($phone, -9),
             "callback_url" =>url('api/withdrawal'),
-            "platform"=>"ecommerce"
-
+            "platform"=>"ecommerce",
+            "withdrawal_medium"=>1,
+            "withdrawal_medium_destination"=>"254". substr($phone, -9),
+            "microservice" =>"dukaapp"
 
         ];
         $curl = curl_init();

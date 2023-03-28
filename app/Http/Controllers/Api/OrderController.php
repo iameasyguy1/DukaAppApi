@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Page;
 use App\Traits\ApiHelpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,10 +24,11 @@ class OrderController extends Controller
     {
 
         if ($request->user()->role===1) {
-            $orders = DB::table('orders')->get();
+            $orders = Page::with('orders')->get();
             return $this->onSuccess($orders, 'Orders Retrieved');
         }elseif($request->user()->role===2){
-            $orders =$request->user()->orders;
+            $orders =$request->user()->pages()->with('orders')->get();
+
             return $this->onSuccess($orders, 'Orders Retrieved');
         }else{
             return $this->onError(401, 'An error occurred');

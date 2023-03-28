@@ -20,7 +20,7 @@ class VerifyCsrfToken extends Middleware
     public function handle($request, Closure $next)
     {
         // Add the following lines to exclude a specific domain from CSRF protection
-        if (strpos($request->headers->get('origin'), 'http://localhost:3000') !== false) {
+        if (strpos($request->headers->get('origin'), 'https://dukaapp.com') !== false) {
             return $next($request);
         }
 

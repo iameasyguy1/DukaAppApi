@@ -55,6 +55,6 @@ class User extends Authenticatable
 
     public function orders()
     {
-        return $this->hasManyThrough(Order::class, Page::class);
+        return $this->hasManyThrough(Order::class, Page::class)->with('page');;
     }
 }

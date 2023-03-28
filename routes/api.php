@@ -35,6 +35,7 @@ Route::group([
     Route::post('reset/password', [ForgotPasswordController::class, 'store'])->name('pass.reset');
     Route::post('verify/password', [ForgotPasswordController::class, 'verify_code'])->name('pass.verify');
     Route::middleware('auth:sanctum')->get('/user', [ProfileController::class, 'profile']);
+    Route::middleware('auth:sanctum')->get('/withdraw', [ProfileController::class, 'withdraw']);
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::middleware('auth:sanctum')->post('/update-profile', [ProfileController::class, 'update']);
     Route::resource('pages', PageController::class)->middleware('auth:sanctum')->except(['show']);

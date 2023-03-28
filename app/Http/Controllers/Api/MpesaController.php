@@ -229,7 +229,9 @@ class MpesaController extends Controller
                         'tranx_ref' => $mpesa['MerchantRequestID'],
                         'page_id' => $request->page_id,
                     ]);
-                    $mpesa['order']=$order->id;
+
+                    $mpesa['order']=encrypt($order->id);
+
                     return response()->json($mpesa);
                 }
             }else{
@@ -256,12 +258,15 @@ class MpesaController extends Controller
     public function MpesaSuccess(Request $request,$order_id){
 
 
-        $order = Order::find($order_id);
+        $order = Order::find(decrypt($order_id));
         if($order){
             $order->update([
                 'payment_status' => 'paid'
             ]);
-
+        $page = Page::find($order->page_id);
+            if($page) {
+                $page->increment('sold_count');
+            }
         try{
             $owner=$order->page->user;
             $sub = __('New Order notification from DukaApp.com');
@@ -274,6 +279,7 @@ class MpesaController extends Controller
         }catch(\Exception $e){
             Log::error($e->getMessage());
         }
+        $order['owner'] = $page->user;
             return response()->json([
                 'code' => 200,
                 'success' => true,

@@ -81,7 +81,9 @@ class ProfileController extends Controller
     public function profile(Request $request)
     {
         try {
-            return $request->user();
+            $user=$request->user();
+            $user['balance']=seller_balance($request->user()->email);
+            return $user;
         } catch (\Throwable $th) {
             return response()->json([
             'status' => false,
@@ -89,5 +91,27 @@ class ProfileController extends Controller
             ], 500);
         }
 
+    }
+
+    public function withdraw(Request $request){
+        try {
+        $user=$request->user();
+        $email = $user->email;
+        $phone = $user->phone;
+        $amount = seller_balance($user->email);
+            if (is_numeric($amount)) {
+                $formattedAmount = number_format((float)$amount, 1, '.', '');
+            } else {
+                $formattedAmount = 0;
+            }
+       $withdraw= seller_withdraw_request($formattedAmount,$email,$phone);
+
+            return $withdraw;
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 }
