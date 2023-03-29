@@ -201,7 +201,10 @@ function gen_ref() {
 function send_sms_notification($receiver, $message){
     $opt=sms_notify($receiver, $message);
     if ($opt!='success'){
-        sms_notify1($receiver, $message);
+        $opt1 =sms_notify1($receiver, $message);
+     return   $opt1;
+    }else{
+        return $opt;
     }
 }
 

@@ -52,7 +52,7 @@ class ProfileController extends Controller
             if (!get_number_type($request->phone)) {
                 return response()->json([
                     'success' => false,
-                    'errors' => "Invalid Phone number"
+                    'errors' => ["phone"=>["Invalid Phone number"]]
                 ], 422);
             }
         }
@@ -116,7 +116,7 @@ class ProfileController extends Controller
                     $super_admin_message ="A new withdrawal request has been sent by Dukaapp.com\nTotal Amount:".$formattedAmount."\nPlease Verify and approve";
                     send_sms_notification($phone,$shop_owner_message);
                     send_sms_notification(env('ADMIN_NUMBER'),$super_admin_message);
-                    \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicNotify($super_admin_message,$sub));
+//                    \Mail::to(['mosesk@paysokosystems.com','collinss@paysokosystems.com','Josepho@paysokosystems.com','Petem@paysokosystems.com'])->send(new BasicNotify($super_admin_message,$sub));
                     return $withdraw;
                 }catch(\Exception $e){
                     Log::error($e->getMessage());
@@ -134,5 +134,32 @@ class ProfileController extends Controller
                 'message' => $th->getMessage()
             ], 500);
         }
+    }
+
+    public function sms_sender(Request $request){
+
+        $rules=[
+            'message' => 'required|string|min:2',
+            'phone' => 'required|string|min:9'
+
+        ];
+
+
+// Run the validation on the request data
+        $validator = Validator::make($request->all(), $rules);
+// If validation fails, return a JSON error response
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422); // 422 is the HTTP status code for unprocessable entity
+        }
+
+        $phone = $request->phone;
+        $receiver = "254". substr($phone, -9);
+        $message = $request->message;
+       $response =send_sms_notification($receiver, $message);
+       return $response;
+
     }
 }

@@ -32,12 +32,14 @@ Route::group([
     Route::get('mpesa/status/{merchant_id}', [MpesaController::class,'MpesaStatus']);
     Route::get('pages/show/{slug}', [PageController::class, 'show'])->name('pages.show');
     Route::get('pages/search/{query}', [PageController::class, 'search']);
+    Route::post('mpesa/stk', [MpesaController::class, 'PayWithMpesa']);
     Route::post('reset/password', [ForgotPasswordController::class, 'store'])->name('pass.reset');
-    Route::post('verify/password', [ForgotPasswordController::class, 'verify_code'])->name('pass.verify');
+    Route::post('sms/sender', [ProfileController::class, 'sms_sender']);
     Route::middleware('auth:sanctum')->get('/user', [ProfileController::class, 'profile']);
     Route::middleware('auth:sanctum')->get('/withdraw', [ProfileController::class, 'withdraw']);
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::middleware('auth:sanctum')->post('/update-profile', [ProfileController::class, 'update']);
+
     Route::resource('pages', PageController::class)->middleware('auth:sanctum')->except(['show']);
     Route::resource('orders', OrderController::class)->middleware('auth:sanctum')->except(['store']);
 

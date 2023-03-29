@@ -44,7 +44,7 @@ class AuthController extends Controller
         if(!get_number_type($request->phone)){
             return response()->json([
                 'success' => false,
-                'errors' => "Invalid Phone number"
+                'errors' => ["phone"=>["Invalid Phone number"]]
             ], 422);
         }
         $user = new User([
